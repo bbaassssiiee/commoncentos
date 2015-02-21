@@ -16,17 +16,20 @@ https://atlas.hashicorp.com/chef/boxes/centos-6.6
 
 Role Variables
 --------------
-The inventory_hostname is used in the VM to set the hostname.
+    {{inventory\_hostname}} 
+is used in the VM to set the hostname in conjunction with
+    {{ansible\_eth0.ipv4.address}}
 
-defaults/main.yml declares 2 variables: 
+defaults/main.yml declares 2 variables:
 
-yum_packages is a list of RPM's that will be installed. It defaults to:
+    {{yum\_packages}} 
+is a list of RPM's that will be installed. It defaults to:
 
-yum_packages:
-   - python-httplib2
-   - unzip
+    yum_packages:
+       - python-httplib2
+       - unzip
 
-The var 'dns_nameserver' defaults to 8.8.8.8 (hosted by Google)
+The var {{dns\_nameserver}} defaults to 8.8.8.8 (hosted by Google)
 
 
 Dependencies

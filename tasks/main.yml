@@ -40,7 +40,7 @@
   
 - name: 'persist in hosts file'
   lineinfile: dest=/etc/hosts regexp='{{inventory_hostname}}' 
-              line='{{ansible_eth1.ipv4.address}}   {{inventory_hostname}}' 
+              line='{{ansible_eth0.ipv4.address}}   {{inventory_hostname}}' 
               state=present
 
 - name: 'add public resolver'
