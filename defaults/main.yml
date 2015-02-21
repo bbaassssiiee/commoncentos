@@ -5,5 +5,4 @@ yum_packages:
    - python-httplib2
    - unzip
 
-dns_nameserver:
-   - 8.8.8.8
+dns_nameserver: 8.8.8.8
