@@ -1,0 +1,8 @@
+---
+# handlers file for bbaassssiiee.commoncentos
+
+- name: 'restart network'
+  service: name=network state=restarted
+
+- name: 'start acpid'
+  service: name=acpid state=started
