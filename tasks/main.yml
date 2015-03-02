@@ -4,7 +4,6 @@
 # By default Yum starts looking for mirrors using ipv6. That can fail on home networks
 - name: 'get ipv6 status for idempotency'
   command: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-  changed_when: false
   register: ipv6
 - name: 'disable ipv6'
   command: sysctl -w net.ipv6.conf.all.disable_ipv6=1
@@ -22,6 +21,7 @@
   with_items:
    - libselinux-python
    - libsemanage-python
+   - ansible # so you can use it as a control host too
    - acpid
 
 - name: 'enable ACPI shutdown'
