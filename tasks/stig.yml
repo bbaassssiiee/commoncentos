@@ -1,0 +1,126 @@
+---
+# tasks file for bbaassssiiee.commoncentos
+
+- name: 'add packages for security requirements'
+  yum: name={{ item }} state=present
+  with_items:
+   - ntp
+   - iptables
+   - aide
+  
+- name: 'start synchronizing the system clock'
+  service: name=ntpd state=started enabled=yes
+  
+- name: 'System security patches and updates must be installed and up-to-date'
+  yum: name=* state=latest
+
+- name: 'WORKAROUND make sure directory exists'
+  file: dest=/etc/samba state=directory owner=root group=root mode=0700
+  
+- name: 'build and write /etc/sysconfig/iptables file'
+  template: src={{ item }} dest=/etc/sysconfig/iptables owner=root group=root mode=0600 backup=no
+  with_first_found:
+    - etc-sysconfig-iptables.j2
+  notify:
+  - restart iptables
+
+- name: 'build and write /etc/sysconfig/iptables-config file'
+  template: src=etc-sysconfig-iptables-config.j2 dest=/etc/sysconfig/iptables-config owner=root group=root mode=0600 backup=yes
+  notify:
+  - restart iptables
+  tags:
+    - config
+
+- name: 'copy the /etc/logrotate.d/iptables template'
+  template: src=etc-logrotate.d-iptables.j2 dest=/etc/logrotate.d/iptables owner=root group=root mode=0644 backup=yes
+  tags:
+    - logrotate
+    - config
+
+- name: 'make sure iptables logfile exists'
+  file: dest=/var/log/iptables.log owner=root group=root mode=0640 state=touch
+
+- name: 'start the system firewall'
+  service: name=iptables state=started enabled=yes
+  
+- name: 'default umask in /etc/profile must be 077'
+  replace: backup=no dest={{ item }} regexp="umask \d\d\d" replace="umask 077"
+  with_items:
+    - /etc/profile
+    - /etc/bashrc
+    
+- name: 'default umask for the csh shell must be 077'
+  replace: backup=no dest=/etc/csh.cshrc regexp="umask \d\d\d" replace="umask 077"
+
+- name: "protect /etc/gshadow file"
+  file: path=/etc/gshadow owner=root group=root mode=0000
+
+- name: 'make sure the secure shell daemon is running'
+  service: name=sshd state=started enabled=yes
+  
+- name: 'prevent the root account from logging in from virtual consoles'
+  lineinfile: state=absent dest=/etc/securetty regexp='^.*vc/?\d' backup=yes
+
+- name: 'weird kernel modules better be disabled'
+  kernel_blacklist: name={{ item }}
+  with_items:
+    - bluetooth
+    - usb-storage
+    - net-pf-31
+    - tipc
+    - sctp
+    - dccp
+  notify: unload usb-storage
+   
+# sysctl kernel settings
+- name: 'limit the ability of processes to have simultaneous write and execute access to memory'
+  sysctl: name=kernel.exec-shield value=1 state=present reload=yes ignoreerrors=yes
+
+- name: 'implement virtual address space randomization'
+  sysctl: name=kernel.randomize_va_space state=present reload=yes ignoreerrors=yes
+
+# sysctl network settings
+- name: 'do not accept IPv4 source-routed packets on any interface'
+  sysctl: name=net.ipv4.conf.all.accept_source_route value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'do not accept ICMPv4 redirect packets on any interface'
+  sysctl: name=net.ipv4.conf.all.accept_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'do not accept ICMPv4 secure redirect packets on any interface'
+  sysctl: name=net.ipv4.conf.all.secure_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'use a reverse-path filter for IPv4 network traffic'
+  sysctl: name=net.ipv4.conf.all.rp_filter value=1 state=present reload=yes ignoreerrors=yes
+  
+- name: 'do must not accept ICMPv4 secure redirect packets by default'
+  sysctl: name=net.ipv4.conf.default.secure_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'ignore ICMPv6 redirects by default'
+  sysctl: name=net.ipv6.conf.default.accept_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'do not send ICMPv4 redirects by default'
+  sysctl: name=net.ipv4.conf.default.send_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'do not send ICMPv4 redirects from any interface'
+  sysctl: name=net.ipv4.conf.all.send_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'log Martian packets'
+  sysctl: name=net.ipv4.conf.all.log_martians value=1 state=present reload=yes  ignoreerrors=yes
+
+- name: 'ignore IPv4 ICMP redirect messages.'
+  sysctl: name=net.ipv4.conf.default.accept_redirects value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'disable TCP timestamp responses'
+  sysctl: name=net.ipv4.tcp_timestamps value=0 state=present reload=yes ignoreerrors=yes
+
+- name: 'limit users to 10 simultaneous system logins'
+  lineinfile: "state=present backup=no dest=/etc/security/limits.conf insertbefore='^# End of file' regexp='^#?\\*.*maxlogins' line='*               hard    maxlogins       10'"
+
+- name: 'disable process core dumps'
+  lineinfile: "state=present backup=no dest=/etc/security/limits.conf regexp='^#?\\*.*(hard|soft).*core' line='*               hard    core            0'"
+  
+- name: 'forward audit records to the syslog service'
+  lineinfile: "state=present backup=no dest=/etc/audisp/plugins.d/syslog.conf regexp='^active' line='active = yes'"
+  
+- name: 'set SELinux to enforcing'
+  selinux: policy=targeted state=enforcing

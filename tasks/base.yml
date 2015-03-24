@@ -1,0 +1,62 @@
+---
+# tasks file for bbaassssiiee.commoncentos
+# We need some packages from the EPEL repository. 
+# By default Yum starts looking for mirrors using ipv6. That can fail on home networks
+
+- name: 'get ipv6 status for idempotency'
+  stat: path=/proc/sys/net/ipv6/conf/all/disable_ipv6
+  register: ipv6file
+
+- name: 'get ipv6 status for idempotency'
+  command: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
+  register: ipv6
+  changed_when: no
+  when: ipv6file.stat.exists
+  
+- name: 'disable ipv6'
+  command: sysctl -w net.ipv6.conf.all.disable_ipv6=1
+  when: ipv6.stdout == 0 and ipv6file.stat.exists
+- name: 'disable ipv6'
+  command: sysctl -w net.ipv6.conf.default.disable_ipv6=1
+  when: ipv6.stdout == 0 and ipv6file.stat.exists
+
+# EPEL Yum repository adds Extra Packages for Enterprise Linux
+- name: 'add EPEL yum repo'
+  yum: name=epel-release state=present
+
+- name: 'install packages for systems management'
+  yum: name={{ item }} state=present
+  with_items: yum_packages
+   
+- name: 'enable ACPI shutdown'
+  service: name=acpid enabled=true
+  notify: 'start acpid'
+  
+- name: 'install Yum packages'
+  yum: name={{ item }} state=present
+  with_items: yum_packages
+
+- name: 'set SELinux to permissive'
+  selinux: policy=targeted state=permissive
+
+- name: 'set hostname'
+  hostname: name={{inventory_hostname}}
+  
+- name: 'persist in hosts file'
+  lineinfile: dest=/etc/hosts regexp='{{inventory_hostname}}' 
+              line='{{ansible_eth0.ipv4.address}}   {{inventory_hostname}}' 
+              state=present
+
+- name: 'add public resolver'
+  lineinfile: dest=/etc/resolv.conf regexp='^nameserver' 
+              line='nameserver {{dns_nameserver}}' state=present
+
+- name: 'disable ipv6 persistently'
+  lineinfile: dest=/etc/sysconfig/network regexp='^NETWORKING_IPV6'
+              line='NETWORKING_IPV6=no' state=present
+  
+# fix Virtualbox annoyances when commuting/roaming networks
+- name: 'dissociate name of network adapter with MAC address.'
+  file: name=/etc/udev/rules.d/70-persistent-net.rules state=absent
+- name: 'avoid associating name of network adapter with MAC address.'
+  file: name=/lib/udev/rules.d/75-persistent-net-generator.rules state=absent
