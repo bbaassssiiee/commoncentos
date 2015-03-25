@@ -14,13 +14,6 @@
 - name: 'System security patches and updates must be installed and up-to-date'
   yum: name=* state=latest
 
-- name: 'WORKAROUND make sure directory exists'
-  file: dest=/etc/samba state=directory owner=root group=root mode=0700
-
-- name: 'WORKAROUND make sure file exists'
-  file: dest=/etc/samba/smb.conf state=touch 
-  
-  
 - name: 'build and write /etc/sysconfig/iptables file'
   template: src={{ item }} dest=/etc/sysconfig/iptables owner=root group=root mode=0600 backup=no
   with_first_found:
