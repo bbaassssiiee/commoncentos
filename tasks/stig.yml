@@ -68,7 +68,6 @@
     - tipc
     - sctp
     - dccp
-  notify: unload usb-storage
    
 # sysctl kernel settings
 - name: 'limit the ability of processes to have simultaneous write and execute access to memory'
