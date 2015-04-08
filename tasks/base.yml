@@ -37,6 +37,7 @@
   with_items: yum_packages
 
 - name: 'set SELinux to permissive'
+  sudo: yes
   selinux: policy=targeted state=permissive
 
 - name: 'set hostname'
