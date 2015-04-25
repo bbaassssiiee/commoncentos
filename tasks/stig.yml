@@ -69,6 +69,9 @@
     - tipc
     - sctp
     - dccp
+
+- name: 'The RDS protocol must be disabled unless required.'
+  copy: backup=no src=disable-rds.conf dest=/etc/modprobe.d/disable-rds.conf owner=root group=root mode=0644
    
 # sysctl kernel settings
 - name: 'limit the ability of processes to have simultaneous write and execute access to memory'
@@ -119,6 +122,9 @@
 
 - name: 'limit users to 10 simultaneous system logins'
   lineinfile: "state=present backup=no dest=/etc/security/limits.conf insertbefore='^# End of file' regexp='^#?\\*.*maxlogins' line='*               hard    maxlogins       10'"
+
+- name: 'specify the number of inactive days before password expiry'
+  lineinfile: "state=present backup=no dest=/etc/default/useradd regexp='^INACTIVE=' line='INACTIVE=35'"
 
 - name: 'disable process core dumps'
   lineinfile: "state=present backup=no dest=/etc/security/limits.conf regexp='^#?\\*.*(hard|soft).*core' line='*               hard    core            0'"
