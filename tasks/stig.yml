@@ -54,8 +54,17 @@
 - name: "protect /etc/gshadow file"
   file: path=/etc/gshadow owner=root group=root mode=0000
 
-- name: 'make sure the secure shell daemon is running'
-  service: name=sshd state=started enabled=yes
+- name: "SSH daemon must not permit user environment settings"
+  lineinfile: "state=present backup=no dest=/etc/ssh/sshd_config regexp='^PermitUserEnvironment' line='PermitUserEnvironment no'"
+
+- name: "SSH daemon needs a ClientAliveInterval"
+  lineinfile: "state=present backup=no dest=/etc/ssh/sshd_config regexp='^ClientAliveInterval' line='ClientAliveInterval 36000'"
+
+- name: "SSH daemon must set a timeout count on idle sessions."
+  lineinfile: "state=present backup=no dest=/etc/ssh/sshd_config regexp='^ClientAliveCountMax' line='ClientAliveCountMax 0'"
+
+- name: 'make sure the secure shell daemon is restarted'
+  service: name=sshd state=restarted enabled=yes
   
 - name: 'prevent the root account from logging in from virtual consoles'
   lineinfile: state=absent dest=/etc/securetty regexp='^.*vc/?\d' backup=yes
