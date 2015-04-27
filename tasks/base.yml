@@ -44,9 +44,9 @@
 - name: 'set hostname for postfix'
   hostname: name=localhost.localdomain
   
-- name: 'persist in hosts file'
+- name: 'persist localhost in hosts file'
   lineinfile: dest=/etc/hosts regexp='{{inventory_hostname}}' 
-              line='{{ansible_eth0.ipv4.address}}   {{inventory_hostname}}' 
+              line='127.0.0.1   localhost.localdomain' 
               state=present
 
 - name: 'add public resolver'

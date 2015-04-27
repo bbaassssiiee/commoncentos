@@ -8,6 +8,7 @@
    - policycoreutils-python
    - iptables
    - aide
+   - openswan
    - screen
   
 - name: 'start synchronizing the system clock'
