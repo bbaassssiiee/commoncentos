@@ -40,8 +40,9 @@
   sudo: yes
   selinux: policy=targeted state=permissive
 
-- name: 'set hostname'
-  hostname: name={{inventory_hostname}}
+# postfix need to update its aliases and needs a dot in the hostname
+- name: 'set hostname for postfix'
+  hostname: name=localhost.localdomain
   
 - name: 'persist in hosts file'
   lineinfile: dest=/etc/hosts regexp='{{inventory_hostname}}' 
