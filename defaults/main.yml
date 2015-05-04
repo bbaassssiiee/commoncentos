@@ -1,6 +1,5 @@
 ---
 # defaults file for bbaassssiiee.commoncentos
-
 yum_packages:
    - libselinux-python
    - libsemanage-python
@@ -10,4 +9,5 @@ yum_packages:
    - acpid
 
 dns_nameserver: 8.8.8.8
-
+# override when using the RHEL-STIG role
+rhel6stig_cat1: false
