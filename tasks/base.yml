@@ -3,38 +3,19 @@
 # We need some packages from the EPEL repository. 
 # By default Yum starts looking for mirrors using ipv6. That can fail on home networks
 
-- name: 'get ipv6 status for idempotency'
-  stat: path=/proc/sys/net/ipv6/conf/all/disable_ipv6
-  register: ipv6file
-
-- name: 'get ipv6 status for idempotency'
-  command: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-  register: ipv6
-  changed_when: no
-  when: ipv6file.stat.exists
-  
-- name: 'disable ipv6'
-  command: sysctl -w net.ipv6.conf.all.disable_ipv6=1
-  when: ipv6.stdout == 0 and ipv6file.stat.exists
-- name: 'disable ipv6'
-  command: sysctl -w net.ipv6.conf.default.disable_ipv6=1
-  when: ipv6.stdout == 0 and ipv6file.stat.exists
-
 # EPEL Yum repository adds Extra Packages for Enterprise Linux
 - name: 'add EPEL yum repo'
   yum: name=epel-release state=present
 
 - name: 'install packages for systems management'
   yum: name={{ item }} state=present
-  with_items: yum_packages
+  with_items: 
+   - libselinux-python
+   - libsemanage-python
    
 - name: 'enable ACPI shutdown'
   service: name=acpid enabled=true
   notify: 'start acpid'
-  
-- name: 'install Yum packages'
-  yum: name={{ item }} state=present
-  with_items: yum_packages
 
 - name: 'set SELinux to permissive'
   sudo: yes
