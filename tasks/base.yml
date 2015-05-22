@@ -12,7 +12,11 @@
   with_items: 
    - libselinux-python
    - libsemanage-python
-   
+   - python-httplib2
+   - unzip
+   - ansible # so you can use it as a control host too
+   - acpid
+
 - name: 'enable ACPI shutdown'
   service: name=acpid enabled=true
   notify: 'start acpid'
