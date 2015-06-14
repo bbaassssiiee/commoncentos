@@ -10,10 +10,10 @@
    - aide
    - openswan
    - screen
-  
+
 - name: 'start synchronizing the system clock'
   service: name=ntpd state=started enabled=yes
-  
+
 - name: 'System security patches and updates must be installed and up-to-date'
   yum: name=* state=latest
 
@@ -42,13 +42,13 @@
 
 - name: 'start the system firewall'
   service: name=iptables state=started enabled=yes
-  
+
 - name: 'default umask in /etc/profile must be 077'
   replace: backup=no dest={{ item }} regexp="umask \d\d\d" replace="umask 077"
   with_items:
     - /etc/profile
     - /etc/bashrc
-    
+
 - name: 'default umask for the csh shell must be 077'
   replace: backup=no dest=/etc/csh.cshrc regexp="umask \d\d\d" replace="umask 077"
 
@@ -66,7 +66,7 @@
 
 - name: 'make sure the secure shell daemon is restarted'
   service: name=sshd state=restarted enabled=yes
-  
+
 - name: 'prevent the root account from logging in from virtual consoles'
   lineinfile: state=absent dest=/etc/securetty regexp='^.*vc/?\d' backup=yes
 
@@ -82,7 +82,7 @@
 
 - name: 'The RDS protocol must be disabled unless required.'
   copy: backup=no src=disable-rds.conf dest=/etc/modprobe.d/disable-rds.conf owner=root group=root mode=0644
-   
+
 # sysctl kernel settings
 - name: 'limit the ability of processes to have simultaneous write and execute access to memory'
   sysctl: name=kernel.exec-shield value=1 state=present reload=yes ignoreerrors=yes
@@ -102,7 +102,7 @@
 
 - name: 'use a reverse-path filter for IPv4 network traffic'
   sysctl: name=net.ipv4.conf.all.rp_filter value=1 state=present reload=yes ignoreerrors=yes
-  
+
 - name: 'do must not accept ICMPv4 secure redirect packets by default'
   sysctl: name=net.ipv4.conf.default.secure_redirects value=0 state=present reload=yes ignoreerrors=yes
 
@@ -138,9 +138,21 @@
 
 - name: 'disable process core dumps'
   lineinfile: "state=present backup=no dest=/etc/security/limits.conf regexp='^#?\\*.*(hard|soft).*core' line='*               hard    core            0'"
-  
+
 - name: 'forward audit records to the syslog service'
   lineinfile: "state=present backup=no dest=/etc/audisp/plugins.d/syslog.conf regexp='^active' line='active = yes'"
-  
+
+- name: 'graphical desktop environment must have automatic lock enabled'
+  command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type bool --set /apps/gnome-screensaver/lock_enabled true"
+
+- name: 'display a publicly-viewable pattern during a graphical desktop environment session lock'
+  command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type string --set /apps/gnome-screensaver/mode blank-only"
+
+- name: 'the graphical desktop environment must set the idle timeout to no more than 15 minutes'
+  command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type int --set /apps/gnome-screensaver/idle_delay 15"
+
+- name: 'the graphical desktop environment must automatically lock after 15 minutes of inactivity and the system must require user to re-authenticate to unlock the environment'
+  command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type bool --set /apps/gnome-screensaver/idle_activation_enabled true"
+
 - name: 'set SELinux to enforcing'
   selinux: policy=targeted state=enforcing
