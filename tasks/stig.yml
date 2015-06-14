@@ -142,17 +142,25 @@
 - name: 'forward audit records to the syslog service'
   lineinfile: "state=present backup=no dest=/etc/audisp/plugins.d/syslog.conf regexp='^active' line='active = yes'"
 
+- name: 'verify presence of gconftool-2'
+  stat: path=/usr/bin/gconftool-2
+  register: gconftool_installed
+
 - name: 'graphical desktop environment must have automatic lock enabled'
   command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type bool --set /apps/gnome-screensaver/lock_enabled true"
+  when: gconftool_installed.stat.exists
 
 - name: 'display a publicly-viewable pattern during a graphical desktop environment session lock'
   command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type string --set /apps/gnome-screensaver/mode blank-only"
+  when: gconftool_installed.stat.exists
 
 - name: 'the graphical desktop environment must set the idle timeout to no more than 15 minutes'
   command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type int --set /apps/gnome-screensaver/idle_delay 15"
+  when: gconftool_installed.stat.exists
 
 - name: 'the graphical desktop environment must automatically lock after 15 minutes of inactivity and the system must require user to re-authenticate to unlock the environment'
   command: "gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory --type bool --set /apps/gnome-screensaver/idle_activation_enabled true"
+  when: gconftool_installed.stat.exists
 
 - name: 'set SELinux to enforcing'
   selinux: policy=targeted state=enforcing
