@@ -31,7 +31,7 @@
 
 - name: 'persist localhost in hosts file'
   lineinfile: dest=/etc/hosts regexp='{{inventory_hostname}}'
-              line='127.0.0.1   localhost.localdomain'
+              line='127.0.0.1   localhost.localdomain localhost'
               state=present
 
 - name: 'add public resolver'
