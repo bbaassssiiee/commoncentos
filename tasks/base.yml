@@ -42,6 +42,9 @@
   lineinfile: dest=/etc/sysconfig/network regexp='^NETWORKING_IPV6'
               line='NETWORKING_IPV6=no' state=present
 
+- name: 'remove ipv6 key from sysctl.conf'
+  command: "sed -i '/net.ipv6.conf.default.accept_redirects/ d' /etc/sysctl.conf"
+
 # fix Virtualbox annoyances when commuting/roaming networks
 - name: 'dissociate name of network adapter with MAC address.'
   file: name=/etc/udev/rules.d/70-persistent-net.rules state=absent
