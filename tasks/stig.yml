@@ -80,9 +80,6 @@
     - sctp
     - dccp
 
-- name: 'The RDS protocol must be disabled unless required.'
-  copy: backup=no src=disable-rds.conf dest=/etc/modprobe.d/disable-rds.conf owner=root group=root mode=0644
-
 # sysctl kernel settings
 - name: 'limit the ability of processes to have simultaneous write and execute access to memory'
   sysctl: name=kernel.exec-shield value=1 state=present reload=yes ignoreerrors=yes
