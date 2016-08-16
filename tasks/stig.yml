@@ -18,9 +18,7 @@
   yum: name=* state=latest
 
 - name: 'build and write /etc/sysconfig/iptables file'
-  template: src={{ item }} dest=/etc/sysconfig/iptables owner=root group=root mode=0600 backup=no
-  with_first_found:
-    - etc-sysconfig-iptables.j2
+  template: src=etc-sysconfig-iptables.j2 dest=/etc/sysconfig/iptables owner=root group=root mode=0600 backup=no
   notify:
   - restart iptables
 
