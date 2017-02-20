@@ -22,7 +22,7 @@
   notify: 'start acpid'
 
 - name: 'set SELinux to permissive'
-  sudo: yes
+  become: yes
   selinux: policy=targeted state=permissive
 
 # postfix need to update its aliases and needs a dot in the hostname
