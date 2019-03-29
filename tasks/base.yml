@@ -30,20 +30,23 @@
   hostname: name=localhost.localdomain
 
 - name: 'persist localhost in hosts file'
-  lineinfile: dest=/etc/hosts regexp='{{inventory_hostname}}'
+  lineinfile: dest=/etc/hosts regexp='{{ inventory_hostname }}'
               line='127.0.0.1   localhost.localdomain localhost'
               state=present
 
 - name: 'add public resolver'
   lineinfile: dest=/etc/resolv.conf regexp='^nameserver'
-              line='nameserver {{dns_nameserver}}' state=present
+              line='nameserver {{ dns_nameserver }}' state=present
 
 - name: 'disable ipv6 persistently'
   lineinfile: dest=/etc/sysconfig/network regexp='^NETWORKING_IPV6'
               line='NETWORKING_IPV6=no' state=present
 
 - name: 'remove ipv6 key from sysctl.conf'
-  command: "sed -i '/net.ipv6.conf.default.accept_redirects/ d' /etc/sysctl.conf"
+  lineinfile:
+    regexp: '/net.ipv6.conf.default.accept_redirects/'
+    path: /etc/sysctl.conf
+    state: absent
 
 # fix Virtualbox annoyances when commuting/roaming networks
 - name: 'dissociate name of network adapter with MAC address.'
